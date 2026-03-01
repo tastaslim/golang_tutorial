@@ -15,7 +15,7 @@ import (
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/takinginput"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
 	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
-	"git.druve.org/cloudapps/shareddrive-node/src/code/functions"
+	"git.druva.org/cloudapps/shareddrive-node/src/code/functions"
 )
 
 func main() {
@@ -50,5 +50,6 @@ func main() {
 	fmt.Println()
 	arrays.SlicesGrowth()
 	// logger.Info("msg=The Operation has completed")
-	summation, different = functions.TupleSum()
+	summation, different := functions.TupleSum(1, 2)
+	fmt.Println(summation, different)
 }
