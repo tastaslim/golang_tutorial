@@ -43,3 +43,37 @@ func (p *Person) SetName(name string) {
 func (p *Person) GetName() string { // func (p Person) GetName() string ==> This is also fine
 	return p.Name
 }
+
+// Struct Embedding
+
+type PlanetEssentials struct {
+	Water bool
+	Air   bool
+	Fire  bool
+	Soil  bool
+	Space bool
+}
+type Planet struct {
+	Name string
+	PlanetEssentials
+}
+
+func (p Planet) HasWater() bool {
+	return p.Water
+}
+
+func (p Planet) HasAir() bool {
+	return p.Air
+}
+
+func (p Planet) HasFire() bool {
+	return p.Fire
+}
+
+func (p Planet) HasSoil() bool {
+	return p.Soil
+}
+
+func (p Planet) HasSpace() bool {
+	return p.Space
+}

@@ -2,21 +2,18 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/conditionals"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/loops"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/maps"
 
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/structures"
-
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/variables"
 
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/takinginput"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/functions"
-	"git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
+	// "git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
 	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
 )
 
@@ -66,14 +63,18 @@ func main() {
 	// pointers.PointerPractice()
 	// a := 5
 	// pointers.PassByReference(&a)
-	employeer := pointers.Employee{
-		Name:        "Taslim",
-		Age:         26,
-		Address:     "NPP",
-		Salary:      12,
-		Position:    "SSE",
-		CreatedTime: time.Now(),
-	}
-	pointers.PassByReferenceOnCustomType(&employeer)
-	fmt.Println(employeer)
+	// employeer := pointers.Employee{
+	// 	Name:        "Taslim",
+	// 	Age:         26,
+	// 	Address:     "NPP",
+	// 	Salary:      12,
+	// 	Position:    "SSE",
+	// 	CreatedTime: time.Now(),
+	// }
+	// pointers.PassByReferenceOnCustomType(&employeer)
+	// fmt.Println(employeer)
+	// 	planterEssentials := structures.PlanetEssentials{Water: true, Fire: false, Air: false, Soil: true, Space: true}
+	// 	planet := structures.Planet{Name: "Mercury", PlanetEssentials: planterEssentials}
+	// 	fmt.Println(planet.HasAir())
+	// 	fmt.Println(planet.HasSoil())
 }
