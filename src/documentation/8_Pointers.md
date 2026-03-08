@@ -55,3 +55,24 @@ func main() {
 	fmt.Println("New size value is", *size)
 }
 ```
+
+# Pass By Reference #
+- In Golang, **slices** and **maps** are passed by reference by default. This means modifications inside the function will affect the original data structure.
+- To pass variable as passby reference, we use & and * keywords
+
+```go
+package main
+import (
+	"fmt"
+)
+
+func PassByReference(pbr * int){
+	*pbr = 10
+}
+
+func main(){
+	pbr := 5
+	PassByReference(&pbr)
+	fmt.Println(pbr) // 10
+}
+```

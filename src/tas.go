@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"time"
 
-	"git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
+	// "git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/conditionals"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/loops"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/maps"
@@ -14,8 +15,9 @@ import (
 
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/takinginput"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
+	// "git.druva.org/cloudapps/shareddrive-node/src/code/functions"
+	"git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
 	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
-	"git.druva.org/cloudapps/shareddrive-node/src/code/functions"
 )
 
 func main() {
@@ -35,6 +37,7 @@ func main() {
 	// }
 	// fmt.Println(structures.PracticeStruct(person))
 	// maps.MapsPractice()
+	// arrays.SlicesPractice()
 	// takinginput.TakeInput()
 
 	// var tas *string
@@ -48,8 +51,29 @@ func main() {
 	// variables.TestVariableShadowing()
 	// dataTypes.TestDataTypes()
 	fmt.Println()
-	arrays.SlicesGrowth()
+	// arrays.SlicesGrowth()
 	// logger.Info("msg=The Operation has completed")
-	summation, different := functions.TupleSum(1, 2)
-	fmt.Println(summation, different)
+	// summation, different := functions.TupleSum(1, 2)
+	// fmt.Println(summation, different)
+	// arr := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	// pairSum := arrays.PairSum(arr, 7)
+	// fmt.Println(pairSum)
+	// arr2 := []int{1, 2, 3, 10, 12}
+	// fmt.Println(arrays.UnionArray(arr, arr2))
+
+	// fmt.Println(arrays.ElementWithMaxFrequency([]int{1, 2, 3, 1, 1, 2, 3, 3, 3, 4, 1, 5, 3}))
+	// fmt.Println(arrays.SecondLargestElement([]int{12, 4, 12}))
+	// pointers.PointerPractice()
+	// a := 5
+	// pointers.PassByReference(&a)
+	employeer := pointers.Employee{
+		Name:        "Taslim",
+		Age:         26,
+		Address:     "NPP",
+		Salary:      12,
+		Position:    "SSE",
+		CreatedTime: time.Now(),
+	}
+	pointers.PassByReferenceOnCustomType(&employeer)
+	fmt.Println(employeer)
 }

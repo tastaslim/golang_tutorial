@@ -28,6 +28,8 @@ func main() {
 ```
 # Slices #
 
+**Slices are also called as Dynamic Array**
+
 If you’re new to Go, you’ve likely encountered slices, which are a powerful and flexible data structure. Slices make it easy to manage collections of elements like numbers, strings, or custom objects. However, one of the most fascinating parts of slices is how they grow dynamically. 
 
 Let’s break this down in simple terms.
