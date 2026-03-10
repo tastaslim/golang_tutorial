@@ -14,6 +14,7 @@ import (
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/functions"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
+	// "git.druva.org/cloudapps/shareddrive-node/src/code/structures"
 	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
 )
 
@@ -77,4 +78,5 @@ func main() {
 	// 	planet := structures.Planet{Name: "Mercury", PlanetEssentials: planterEssentials}
 	// 	fmt.Println(planet.HasAir())
 	// 	fmt.Println(planet.HasSoil())
+
 }
