@@ -15,6 +15,7 @@ import (
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/functions"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/structures"
+	"git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
 	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
 )
 
@@ -78,5 +79,8 @@ func main() {
 	// 	planet := structures.Planet{Name: "Mercury", PlanetEssentials: planterEssentials}
 	// 	fmt.Println(planet.HasAir())
 	// 	fmt.Println(planet.HasSoil())
+	arr := []int{1, 2, 3, 4, 5}
+	maxi := arrays.MaximumElement(arr)
+	fmt.Println(maxi)
 
 }

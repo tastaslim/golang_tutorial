@@ -191,3 +191,12 @@ func SecondLargestElement(arr []int) int {
 	}
 	return secondLargest
 }
+
+func MaximumElement(arr []int) int {
+	maximumElement := 0
+	sizeOfArray := len(arr)
+	for i := range sizeOfArray {
+		maximumElement = max(maximumElement, arr[i])
+	}
+	return maximumElement
+}
