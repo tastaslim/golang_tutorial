@@ -144,7 +144,7 @@ func main(){
 
 ---
 
-# Running Go File #
+# Running non Main Go File #
 1. Go can not run any other package than main. If you try to run it, you will get below error
 ```text
 package command-line-arguments is not a main package
