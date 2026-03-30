@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+const (
+	a = 20
+	b = 30
+	c = 40
+)
+
 func VariablePractice() {
 	var number1 int = 32
 	var number2 int = 34
@@ -54,3 +60,15 @@ func TestVariableShadowing() {
 	fmt.Println(x)
 	fmt.Println(y)
 }
+
+func TestConstant() {
+	const num int = 20 // const num = 20 ==> Both are correct
+	fmt.Println(num)
+	var name string = "James Bond"
+	fmt.Println(name)
+	fmt.Println(a, b, c)
+}
+
+// name := "James Bond" ==> Wrong will give error
+// var name string = "James Bond"
+// fmt.Println(name)

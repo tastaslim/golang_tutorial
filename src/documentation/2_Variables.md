@@ -161,7 +161,7 @@ a, b := 20, 30  // valid because b is new
 
 ---
 
-1. **Go** Follows CamelCasing covention for methods and variables and Pascal casing for Classes and same rules as C++ for variable naming.
+1. **Go** Follows CamelCasing convention for methods and variables.
 
 - A variable name must start with a letter or an underscore character (_)
 - A variable name cannot start with a digit

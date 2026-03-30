@@ -8,7 +8,7 @@ import (
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/loops"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/maps"
 
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/variables"
+	variable "git.druva.org/cloudapps/shareddrive-node/src/code/variables"
 
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/takinginput"
 	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
@@ -82,5 +82,6 @@ func main() {
 	arr := []int{1, 2, 3, 4, 5}
 	maxi := arrays.MaximumElement(arr)
 	fmt.Println(maxi)
+	variable.TestConstant()
 
 }
