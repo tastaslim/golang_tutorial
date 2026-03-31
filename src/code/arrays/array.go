@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	input "github.com/tastaslim/golang_tutorial/src/code/takingInput"
 	"github.com/tastaslim/golang_tutorial/src/pkg/logger"
 )
 
@@ -201,10 +202,11 @@ func MaximumElement(arr []int) int {
 	return maximumElement
 }
 
-func InitializeArray(size int) []int {
-	employees := [10]string{}
-	for range employees {
-		TakeInput()
+func InitializeArray(size int) []string {
+	var employees []string
+	for range size {
+		element := input.TakeInput()
 		employees = append(employees, element)
 	}
+	return employees
 }

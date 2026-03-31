@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
+	"github.com/tastaslim/golang_tutorial/src/code/arrays"
 	// "github.com/tastaslim/golang_tutorial/src/code/conditionals"
-	loops "github.com/tastaslim/golang_tutorial/src/code/loops"
+	// loops "github.com/tastaslim/golang_tutorial/src/code/loops"
 	// "github.com/tastaslim/golang_tutorial/src/code/maps"
 	// variable "github.com/tastaslim/golang_tutorial/src/code/variables"
 	// "github.com/tastaslim/golang_tutorial/src/code/takinginput"
@@ -13,7 +13,6 @@ import (
 	// "github.com/tastaslim/golang_tutorial/src/code/functions"
 	// "github.com/tastaslim/golang_tutorial/src/code/pointers"
 	// "github.com/tastaslim/golang_tutorial/src/code/structures"
-	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
 	"github.com/tastaslim/golang_tutorial/src/pkg/logger"
 )
 
@@ -83,5 +82,11 @@ func main() {
 	// variable.TestConstant()
 	// loops.EvenNumbers(20)
 	// loops.BreakOnCondition(10)
-	fmt.Println(loops.ReturnOnCondition("Tas"))
+	// fmt.Println(loops.ReturnOnCondition("Tas"))
+	// finalArray := arrays.InitializeArray(2)
+	// fmt.Println(finalArray)
+	employees := []string{"Asad", "Diksha", "Rohan", "Raghav"}
+	targetName := "Asad1"
+	exists := arrays.SlicesCheck(employees, targetName)
+	fmt.Println(exists)
 }

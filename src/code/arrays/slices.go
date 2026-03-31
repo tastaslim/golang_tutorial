@@ -19,9 +19,7 @@ func SlicesPractice() {
 	// Like C++, new keyword, in go we use make method to create these
 
 	var marks []int = make([]int, 2) // [0,0] ==> Initial size
-	if marks == nil {                // Now it won't be nil
-		fmt.Printf("Empty Slice with length %v\n", len(marks))
-	}
+	fmt.Println(marks == nil)
 	fmt.Println(marks, cap(marks))
 	marks = append(marks, 1)
 	marks = append(marks, 2)
@@ -33,4 +31,21 @@ func SlicesPractice() {
 	nums2 := [4]int{1, 2, 3, 4}
 	fmt.Println(slices.Equal(nums[:], nums2[:]))
 
+}
+
+func SlicesCheck(names []string, targetName string) bool {
+	// for i := range names {
+	// 	if names[i] == targetName {
+	// 		return true
+	// 	}
+	// }
+	// return false
+
+	if slices.Contains(names, targetName) {
+		return true
+	}
+
+	slices.Sort(names)
+	fmt.Println(names)
+	return false
 }
