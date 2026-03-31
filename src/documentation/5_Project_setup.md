@@ -49,14 +49,14 @@ module github.com/tastaslim/golang_tutorial
 ```
 module github.com/tastaslim/golang_tutorial
 
-go 1.25.5
+go 1.26.1
 ```
 
 ### Real-World Example with Dependencies ###
 ```
 module git.company.com/platform/auth-service
 
-go 1.25.5
+go 1.26.1
 
 require (
     github.com/gin-gonic/gin v1.9.1
