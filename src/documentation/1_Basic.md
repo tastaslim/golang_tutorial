@@ -133,7 +133,7 @@ func ArithmeticAddition(a int, b int) int {
 package main
 import (
   "fmt"
-  "git.druva.org/cloudapps/shareddrive-node/src/code/conditionals"
+  "github.com/tastaslim/golang_tutorial/src/code/conditionals"
 )
 
 func main(){

@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
+	"github.com/tastaslim/golang_tutorial/src/pkg/logger"
 )
 
 func ArrayOperations() {
@@ -199,4 +199,12 @@ func MaximumElement(arr []int) int {
 		maximumElement = max(maximumElement, arr[i])
 	}
 	return maximumElement
+}
+
+func InitializeArray(size int) []int {
+	employees := [10]string{}
+	for range employees {
+		TakeInput()
+		employees = append(employees, element)
+	}
 }

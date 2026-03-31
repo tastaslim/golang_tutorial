@@ -1,6 +1,6 @@
-module git.druva.org/cloudapps/shareddrive-node
+module github.com/tastaslim/golang_tutorial
 
-go 1.25.5
+go 1.26.1
 
 require github.com/go-kit/log v0.2.1
 

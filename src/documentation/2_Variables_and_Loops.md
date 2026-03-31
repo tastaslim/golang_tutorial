@@ -260,3 +260,49 @@ fmt.Printf("%#v\n", u)
 main.User{Name:"John", Age:25}
 */
 ```
+
+---
+
+# Loops in Golang #
+
+In golang, there is only one looping construct ==> **for** loop
+
+```go
+import (
+    "fmt"
+)
+for i := range 20{
+    fmt.Println(i)
+}
+```
+
+**while** version of for loop
+```go
+import (
+    "fmt"
+)
+i := 0
+for i < 20 {
+    fmt.Println(i)
+    i += 1
+}
+```
+
+**For Infinite loop**
+while True == for
+
+```go
+i := 0
+for {
+    fmt.Println(i)
+    i++
+}
+```
+
+# For loop in C++ Style #
+
+```go
+i := 0
+for i:=0; i<30; i++ {
+    fmt.Println(i)
+}

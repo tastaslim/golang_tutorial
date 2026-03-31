@@ -3,20 +3,18 @@ package main
 import (
 	"fmt"
 
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/conditionals"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/loops"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/maps"
-
-	variable "git.druva.org/cloudapps/shareddrive-node/src/code/variables"
-
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/takinginput"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/dataTypes"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/functions"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/pointers"
-	// "git.druva.org/cloudapps/shareddrive-node/src/code/structures"
-	"git.druva.org/cloudapps/shareddrive-node/src/code/arrays"
-	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
+	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
+	// "github.com/tastaslim/golang_tutorial/src/code/conditionals"
+	loops "github.com/tastaslim/golang_tutorial/src/code/loops"
+	// "github.com/tastaslim/golang_tutorial/src/code/maps"
+	// variable "github.com/tastaslim/golang_tutorial/src/code/variables"
+	// "github.com/tastaslim/golang_tutorial/src/code/takinginput"
+	// "github.com/tastaslim/golang_tutorial/src/code/dataTypes"
+	// "github.com/tastaslim/golang_tutorial/src/code/functions"
+	// "github.com/tastaslim/golang_tutorial/src/code/pointers"
+	// "github.com/tastaslim/golang_tutorial/src/code/structures"
+	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
+	"github.com/tastaslim/golang_tutorial/src/pkg/logger"
 )
 
 func main() {
@@ -79,9 +77,11 @@ func main() {
 	// 	planet := structures.Planet{Name: "Mercury", PlanetEssentials: planterEssentials}
 	// 	fmt.Println(planet.HasAir())
 	// 	fmt.Println(planet.HasSoil())
-	arr := []int{1, 2, 3, 4, 5}
-	maxi := arrays.MaximumElement(arr)
-	fmt.Println(maxi)
-	variable.TestConstant()
-
+	// arr := []int{1, 2, 3, 4, 5}
+	// maxi := arrays.MaximumElement(arr)
+	// fmt.Println(maxi)
+	// variable.TestConstant()
+	// loops.EvenNumbers(20)
+	// loops.BreakOnCondition(10)
+	fmt.Println(loops.ReturnOnCondition("Tas"))
 }

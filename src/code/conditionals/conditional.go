@@ -41,5 +41,7 @@ func SwitchStatement() {
 		fmt.Println(4)
 	case 5:
 		fmt.Println(5)
+	default:
+		fmt.Println("Other")
 	}
 }

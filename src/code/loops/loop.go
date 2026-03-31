@@ -3,7 +3,7 @@ package loops
 import (
 	"fmt"
 
-	"git.druva.org/cloudapps/shareddrive-node/src/pkg/logger"
+	"github.com/tastaslim/golang_tutorial/src/pkg/logger"
 )
 
 func LoopOperations() {
@@ -24,7 +24,7 @@ func LoopOperations() {
 	*/
 }
 
-func RunMiscellenious() {
+func RunMiscellaneous() {
 	books := 30
 	for book := range books {
 		if book > 10 {
@@ -35,4 +35,33 @@ func RunMiscellenious() {
 			fmt.Println(book)
 		}
 	}
+}
+
+func EvenNumbers(lastNumber int) {
+	for number := range lastNumber + 1 { // Inclusive of last number
+		if number%2 == 0 {
+			fmt.Println(number)
+		}
+	}
+}
+
+func BreakOnCondition(target int) {
+	number := 0
+	for {
+		if number == target {
+			break
+		}
+		fmt.Println(number)
+		number += 1
+	}
+}
+
+func ReturnOnCondition(targetName string) string {
+	names := []string{"Tas", "Mom", "Dad", "Dinky", "Ash"}
+	for i := range names { // for i := range len(names) both are correct
+		if names[i] == targetName {
+			return "YES"
+		}
+	}
+	return "NO"
 }

@@ -24,3 +24,42 @@ func main() {
   fmt.Println("String:  ", d)
 }
 ```
+
+# Conditionals in Go #
+
+## Go If else Statement ##
+
+In Go, conditional statements (if, else if, else) are used to execute different blocks of code based on whether a condition evaluates to true or false. The if statement checks a condition, else if adds more conditions, and else runs when none are true. Parentheses are optional, but {} are required.
+
+```go 
+import "fmt"
+func main() {
+    temperature := 70
+
+    if temperature < 60 {
+        fmt.Println("Put on a jacket.")
+    } else if temperature >= 60 && temperature < 75 {
+        fmt.Println("Put on a light sweater.")
+    } else {
+        fmt.Println("Wear summer clothes.")
+    }
+}
+```
+
+## Go Switch Statement ##
+The Go switch statement can be used as an alternative to a set of if followed by else if statements. The switch statement compares the expression inside a condition with a set of values encapsulated in cases. The code inside a matched case value is executed and the switch block terminates. A default case without a value can be appended to the last case and its code executed if no prior match is found.
+```go
+import "fmt"
+day := "Tuesday"
+switch day {
+  case "Monday":
+    fmt.Println("Monday is magnificent.")
+  case "Tuesday":
+    fmt.Println("Tuesday is terrific.")
+  case "Wednesday":
+    fmt.Println("Wednesday is wacky.")
+  default:
+    fmt.Println("We survived.")
+}
+```
+

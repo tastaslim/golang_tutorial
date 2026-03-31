@@ -26,7 +26,7 @@ go mod init git.company.com/team/service-name
 
 This project, for example, uses:
 ```
-module git.druva.org/cloudapps/shareddrive-node
+module github.com/tastaslim/golang_tutorial
 ```
 
 ---
@@ -47,7 +47,7 @@ module git.druva.org/cloudapps/shareddrive-node
 
 ### Minimal Example ###
 ```
-module git.druva.org/cloudapps/shareddrive-node
+module github.com/tastaslim/golang_tutorial
 
 go 1.25.5
 ```
