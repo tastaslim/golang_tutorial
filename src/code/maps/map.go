@@ -16,3 +16,17 @@ func MapsPractice() {
 	fmt.Println(studentNameAgeMapper["Taslim"])
 	fmt.Println(numFrequency)
 }
+
+func MaxFrequencyElement(arr []int) (int, int) {
+	frequencyCounter := make(map[int]int)
+	maxCounter := 0
+	maxFreqElement := arr[0]
+	for i := range arr {
+		frequencyCounter[arr[i]]++
+		if frequencyCounter[arr[i]] > maxCounter {
+			maxCounter = frequencyCounter[arr[i]]
+			maxFreqElement = arr[i]
+		}
+	}
+	return maxCounter, maxFreqElement
+}
