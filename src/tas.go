@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/tastaslim/golang_tutorial/src/code/arrays"
+	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
 	// "github.com/tastaslim/golang_tutorial/src/code/conditionals"
 	// loops "github.com/tastaslim/golang_tutorial/src/code/loops"
-	// "github.com/tastaslim/golang_tutorial/src/code/maps"
+	"github.com/tastaslim/golang_tutorial/src/code/maps"
 	// variable "github.com/tastaslim/golang_tutorial/src/code/variables"
 	// "github.com/tastaslim/golang_tutorial/src/code/takinginput"
 	// "github.com/tastaslim/golang_tutorial/src/code/dataTypes"
@@ -85,8 +85,10 @@ func main() {
 	// fmt.Println(loops.ReturnOnCondition("Tas"))
 	// finalArray := arrays.InitializeArray(2)
 	// fmt.Println(finalArray)
-	employees := []string{"Asad", "Diksha", "Rohan", "Raghav"}
-	targetName := "Asad1"
-	exists := arrays.SlicesCheck(employees, targetName)
-	fmt.Println(exists)
+	// 	employees := []string{"Asad", "Diksha", "Rohan", "Raghav"}
+	// 	targetName := "Asad1"
+	// 	exists := arrays.SlicesCheck(employees, targetName)
+	// 	fmt.Println(exists)
+	arr := []int{1, 2, 3, 4, 1, 2, 1, 1, 1, 1, 2}
+	fmt.Println(maps.CountFrequency(arr))
 }

@@ -30,3 +30,12 @@ func MaxFrequencyElement(arr []int) (int, int) {
 	}
 	return maxCounter, maxFreqElement
 }
+
+func CountFrequency(arr []int) map[int]int {
+	frequencyCounter := make(map[int]int)
+	lengthOfArray := len(arr)
+	for i := range lengthOfArray {
+		frequencyCounter[arr[i]]++
+	}
+	return frequencyCounter
+}
