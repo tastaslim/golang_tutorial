@@ -39,3 +39,59 @@ func CountFrequency(arr []int) map[int]int {
 	}
 	return frequencyCounter
 }
+
+func UnionArray(arr1 []int, arr2 []int) []int {
+	hashMap := make(map[int]int)
+	sizeOfArray1, sizeOfArray2 := len(arr1), len(arr2)
+	for i := range sizeOfArray1 {
+		hashMap[arr1[i]]++
+	}
+	for i := range sizeOfArray2 {
+		hashMap[arr2[i]]++
+	}
+	finalArray := []int{}
+	for key := range hashMap {
+		finalArray = append(finalArray, key)
+	}
+	return finalArray
+}
+
+func CheckEqual(arr1 []int, arr2 []int) bool {
+	hashMap := make(map[int]int)
+	sizeOfArray1, sizeOfArray2 := len(arr1), len(arr2)
+	for i := range sizeOfArray1 {
+		hashMap[arr1[i]]++
+	}
+	for i := range sizeOfArray2 {
+		count := hashMap[arr2[i]]
+		if count > 1 {
+			hashMap[arr2[i]]--
+		} else {
+			delete(hashMap, arr2[i])
+		}
+	}
+
+	if len(hashMap) == 0 {
+		return true
+	}
+	return false
+}
+
+func IsSubset(arr1 []int, arr2 []int) bool {
+	hashMap := make(map[int]int)
+	sizeOfArray1, sizeOfArray2 := len(arr1), len(arr2)
+	for i := range sizeOfArray1 {
+		hashMap[arr1[i]]++
+	}
+	for i := range sizeOfArray2 {
+		hashMap[arr2[i]]--
+	}
+
+	for _, value := range hashMap {
+		if value < 0 {
+			return false
+		}
+	}
+
+	return true
+}

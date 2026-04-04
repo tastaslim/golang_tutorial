@@ -89,6 +89,11 @@ func main() {
 	// 	targetName := "Asad1"
 	// 	exists := arrays.SlicesCheck(employees, targetName)
 	// 	fmt.Println(exists)
-	arr := []int{1, 2, 3, 4, 1, 2, 1, 1, 1, 1, 2}
-	fmt.Println(maps.CountFrequency(arr))
+	// arr := []int{1, 2, 3, 4, 1, 2, 1, 1, 1, 1, 2}
+	// fmt.Println(maps.CountFrequency(arr))
+	arr2 := []int{1, 2, 5}
+	arr3 := []int{2, 5, 1}
+	// fmt.Println(maps.UnionArray(arr, arr2))
+	// fmt.Println(maps.CheckEqual(arr3, arr2))
+	fmt.Println(maps.IsSubset(arr2, arr3))
 }
