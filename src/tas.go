@@ -6,7 +6,9 @@ import (
 	// "github.com/tastaslim/golang_tutorial/src/code/arrays"
 	// "github.com/tastaslim/golang_tutorial/src/code/conditionals"
 	// loops "github.com/tastaslim/golang_tutorial/src/code/loops"
-	"github.com/tastaslim/golang_tutorial/src/code/maps"
+	shape "github.com/tastaslim/golang_tutorial/src/code/interfaces"
+	// "github.com/tastaslim/golang_tutorial/src/code/maps"
+
 	// variable "github.com/tastaslim/golang_tutorial/src/code/variables"
 	// "github.com/tastaslim/golang_tutorial/src/code/takinginput"
 	// "github.com/tastaslim/golang_tutorial/src/code/dataTypes"
@@ -91,9 +93,21 @@ func main() {
 	// 	fmt.Println(exists)
 	// arr := []int{1, 2, 3, 4, 1, 2, 1, 1, 1, 1, 2}
 	// fmt.Println(maps.CountFrequency(arr))
-	arr2 := []int{1, 2, 5}
-	arr3 := []int{2, 5, 1}
+	// arr2 := []int{1, 2, 5}
+	// arr3 := []int{2, 5, 1}
 	// fmt.Println(maps.UnionArray(arr, arr2))
 	// fmt.Println(maps.CheckEqual(arr3, arr2))
-	fmt.Println(maps.IsSubset(arr2, arr3))
+	// fmt.Println(maps.IsSubset(arr2, arr3))
+	// circle := shape.Circle{Radius: 10}
+	// square := shape.Square{Length: 10, Breadth: 10}
+	// fmt.Println("The Area of Circle is", shape.CalculateArea(circle))
+	// fmt.Println("The Area of Square is", shape.CalculateArea(square))
+	// cat := shape.Cat{Sound: "Mew"}
+	// dog := shape.Dog{Sound: "Bark"}
+	// cow := shape.Cow{Sound: "Moo"}
+	// fmt.Println(shape.MakeSound(cat))
+	// fmt.Println(shape.MakeSound(dog))
+	// fmt.Println(shape.MakeSound(cow))
+	payment := shape.NetBanking{Name: "Net Banking"}
+	payment.Pay(1000)
 }
