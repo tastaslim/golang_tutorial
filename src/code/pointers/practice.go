@@ -35,3 +35,24 @@ func PassByReferenceOnCustomType(emp *Employee) {
 	emp.Name = "Arif"
 	emp.Age++
 }
+
+type Animal struct {
+	Name  string
+	Age   int
+	Breed string
+}
+
+func getAnimalInfo(animal *Animal) Animal {
+	return *animal
+}
+
+func main() {
+	cow := Animal{
+		Name:  "Cow",
+		Age:   12,
+		Breed: "JERSEY",
+	}
+
+	result := getAnimalInfo(&cow)
+	fmt.Println(result)
+}

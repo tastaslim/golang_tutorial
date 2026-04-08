@@ -1,15 +1,19 @@
 package takinginput
 
 import (
-	"bufio"
+	// "bufio"
 	"fmt"
-	"os"
+	// "os"
 )
 
 func TakeInput() string {
-	var scanner *bufio.Scanner = bufio.NewScanner(os.Stdin)
+	// var scanner *bufio.Scanner = bufio.NewScanner(os.Stdin)
+	// fmt.Print("Enter input: ")
+	// scanner.Scan()
+	// var text string = scanner.Text()
+	// return text
+	var text string
 	fmt.Print("Enter input: ")
-	scanner.Scan()
-	var text string = scanner.Text()
+	fmt.Scanln(&text) // fmt.Scanf("%s", &text) // f.Scan(&text)
 	return text
 }
