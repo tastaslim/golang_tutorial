@@ -56,6 +56,12 @@ func Max[T Comparable](a, b T) T {
     }
     return b
 }
+
+//Only allow int and string types
+func PrintNumbers[T int | string](items []T) []T {
+	fmt.Println(items)
+	return items
+}
 ```
 
 ## Key Points
