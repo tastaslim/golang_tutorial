@@ -2,7 +2,7 @@
 # Goroutines in Go
 
 ## Overview
-A goroutine is a lightweight thread managed by the Go runtime. Goroutines allow concurrent execution of functions with minimal overhead, making it easy to write scalable concurrent programs.
+Goroutines allow concurrent execution of functions with minimal overhead, making it easy to write scalable concurrent programs.
 
 ## Key Characteristics
 - **Lightweight**: Thousands of goroutines can run simultaneously
@@ -189,3 +189,6 @@ Goroutines don't block main; when main exits, all goroutines terminate unless ex
 - Be cautious with shared memory; prefer channels for communication
 - We will read about channels and WaitGroup in coming lectures
 - Refer https://www.youtube.com/watch?v=rAhmryWS3Ng&list=PLXQpH_kZIxTWUe-Ee-DZEX5gfeoo4tHV6&index=24 , 
+
+----
+# Go WaitGroup
