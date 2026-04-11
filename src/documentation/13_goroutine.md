@@ -192,3 +192,260 @@ Goroutines don't block main; when main exits, all goroutines terminate unless ex
 
 ----
 # Go WaitGroup
+- Go makes it very easy to write concurrent code. Start a few goroutines, wait for all of them to finish, and done. The go keyword makes this a breeze, and with the 
+**sync.WaitGroup** primitive that allows us to wait for a group of goroutines to finish, synchronization can be achieved with no hassle. So it so hassle free? ==> **NO**
+- If a WaitGroup is explicitly passed into functions, it should be done by **pointer**.
+- A goroutine is done when the function it invokes returns/completes the execution.
+  
+## How It Works ?
+WaitGroup exports 3 methods.
+1. **Add(int)**	It increases WaitGroup counter by given integer value.
+2. **Done()**	It decreases WaitGroup counter by 1, we will use it to indicate termination of a goroutine.
+3. **Wait()**	It Blocks the execution until it's internal counter becomes 0.
+Note: WaitGroup is concurrency safe, so its safe to pass pointer to it as argument for Goroutines.
+```go
+package main
+
+import (
+    "fmt"
+	"sync"
+)
+
+// func PrintNumbers(num int) {
+//     fmt.Println(num)
+// }
+
+// func main() {
+//     for i := 0; i <= 10; i++ {
+//         go PrintNumbers(i) // This won't print unless we use waitGroups
+//     }
+// }
+
+func PrintNumbers(num int, wg *sync.WaitGroup) {
+	defer wg.Done()
+    fmt.Println(num)
+}
+
+func main(){
+	var waitGroup sync.WaitGroup
+	for i:= 0; i<=10; i++{
+		waitGroup.Add(1)
+		go PrintNumbers(i, &waitGroup)
+	}
+	waitGroup.Wait()
+}
+```
+## Depth About WaitGroup
+
+The WaitGroup implementation, although just 129 lines of code, is actually quite interesting to look at. We can learn a lot about writing concurrent code in Go and about the runtime and the Go scheduler. Let's take a look at the WaitGroup struct:
+
+```go
+// A WaitGroup waits for a collection of goroutines to finish.
+// The main goroutine calls Add to set the number of goroutines to wait for.
+// Then each of the goroutines runs and calls Done when finished. At the same
+// time, Wait can be used to block until all goroutines have finished.
+//
+// A WaitGroup must not be copied after first use.
+type WaitGroup struct {
+	noCopy noCopy
+
+	// Bits (high to low):
+	//   bits[0:32]  counter
+	//   bits[32]    flag: synctest bubble membership
+	//   bits[33:64] wait count
+	state atomic.Uint64
+	sema  uint32
+}
+
+// waitGroupBubbleFlag indicates that a WaitGroup is associated with a synctest bubble.
+const waitGroupBubbleFlag = 0x8000_0000
+
+// Add adds delta, which may be negative, to the [WaitGroup] task counter.
+// If the counter becomes zero, all goroutines blocked on [WaitGroup.Wait] are released.
+// If the counter goes negative, Add panics.
+//
+// Callers should prefer [WaitGroup.Go].
+//
+// Note that calls with a positive delta that occur when the counter is zero
+// must happen before a Wait. Calls with a negative delta, or calls with a
+// positive delta that start when the counter is greater than zero, may happen
+// at any time.
+// Typically this means the calls to Add should execute before the statement
+// creating the goroutine or other event to be waited for.
+// If a WaitGroup is reused to wait for several independent sets of events,
+// new Add calls must happen after all previous Wait calls have returned.
+// See the WaitGroup example.
+func (wg *WaitGroup) Add(delta int) {
+	if race.Enabled {
+		if delta < 0 {
+			// Synchronize decrements with Wait.
+			race.ReleaseMerge(unsafe.Pointer(wg))
+		}
+		race.Disable()
+		defer race.Enable()
+	}
+	bubbled := false
+	if synctest.IsInBubble() {
+		// If Add is called from within a bubble, then all Add calls must be made
+		// from the same bubble.
+		switch synctest.Associate(wg) {
+		case synctest.Unbubbled:
+		case synctest.OtherBubble:
+			// wg is already associated with a different bubble.
+			fatal("sync: WaitGroup.Add called from multiple synctest bubbles")
+		case synctest.CurrentBubble:
+			bubbled = true
+			state := wg.state.Or(waitGroupBubbleFlag)
+			if state != 0 && state&waitGroupBubbleFlag == 0 {
+				// Add has been called from outside this bubble.
+				fatal("sync: WaitGroup.Add called from inside and outside synctest bubble")
+			}
+		}
+	}
+	state := wg.state.Add(uint64(delta) << 32)
+	if state&waitGroupBubbleFlag != 0 && !bubbled {
+		// Add has been called from within a synctest bubble (and we aren't in one).
+		fatal("sync: WaitGroup.Add called from inside and outside synctest bubble")
+	}
+	v := int32(state >> 32)
+	w := uint32(state & 0x7fffffff)
+	if race.Enabled && delta > 0 && v == int32(delta) {
+		// The first increment must be synchronized with Wait.
+		// Need to model this as a read, because there can be
+		// several concurrent wg.counter transitions from 0.
+		race.Read(unsafe.Pointer(&wg.sema))
+	}
+	if v < 0 {
+		panic("sync: negative WaitGroup counter")
+	}
+	if w != 0 && delta > 0 && v == int32(delta) {
+		panic("sync: WaitGroup misuse: Add called concurrently with Wait")
+	}
+	if v > 0 || w == 0 {
+		return
+	}
+	// This goroutine has set counter to 0 when waiters > 0.
+	// Now there can't be concurrent mutations of state:
+	// - Adds must not happen concurrently with Wait,
+	// - Wait does not increment waiters if it sees counter == 0.
+	// Still do a cheap sanity check to detect WaitGroup misuse.
+	if wg.state.Load() != state {
+		panic("sync: WaitGroup misuse: Add called concurrently with Wait")
+	}
+	// Reset waiters count to 0.
+	wg.state.Store(0)
+	if bubbled {
+		// Adds must not happen concurrently with wait when counter is 0,
+		// so we can safely disassociate wg from its current bubble.
+		synctest.Disassociate(wg)
+	}
+	for ; w != 0; w-- {
+		runtime_Semrelease(&wg.sema, false, 0)
+	}
+}
+
+// Done decrements the [WaitGroup] task counter by one.
+// It is equivalent to Add(-1).
+//
+// Callers should prefer [WaitGroup.Go].
+//
+// In the terminology of [the Go memory model], a call to Done
+// "synchronizes before" the return of any Wait call that it unblocks.
+//
+// [the Go memory model]: https://go.dev/ref/mem
+func (wg *WaitGroup) Done() {
+	wg.Add(-1)
+}
+
+// Wait blocks until the [WaitGroup] task counter is zero.
+func (wg *WaitGroup) Wait() {
+	if race.Enabled {
+		race.Disable()
+	}
+	for {
+		state := wg.state.Load()
+		v := int32(state >> 32)
+		w := uint32(state & 0x7fffffff)
+		if v == 0 {
+			// Counter is 0, no need to wait.
+			if race.Enabled {
+				race.Enable()
+				race.Acquire(unsafe.Pointer(wg))
+			}
+			if w == 0 && state&waitGroupBubbleFlag != 0 && synctest.IsAssociated(wg) {
+				// Adds must not happen concurrently with wait when counter is 0,
+				// so we can disassociate wg from its current bubble.
+				if wg.state.CompareAndSwap(state, 0) {
+					synctest.Disassociate(wg)
+				}
+			}
+			return
+		}
+		// Increment waiters count.
+		if wg.state.CompareAndSwap(state, state+1) {
+			if race.Enabled && w == 0 {
+				// Wait must be synchronized with the first Add.
+				// Need to model this is as a write to race with the read in Add.
+				// As a consequence, can do the write only for the first waiter,
+				// otherwise concurrent Waits will race with each other.
+				race.Write(unsafe.Pointer(&wg.sema))
+			}
+			synctestDurable := false
+			if state&waitGroupBubbleFlag != 0 && synctest.IsInBubble() {
+				if race.Enabled {
+					race.Enable()
+				}
+				if synctest.IsAssociated(wg) {
+					// Add was called within the current bubble,
+					// so this Wait is durably blocking.
+					synctestDurable = true
+				}
+				if race.Enabled {
+					race.Disable()
+				}
+			}
+			runtime_SemacquireWaitGroup(&wg.sema, synctestDurable)
+			isReset := wg.state.Load() != 0
+			if race.Enabled {
+				race.Enable()
+				race.Acquire(unsafe.Pointer(wg))
+			}
+			if isReset {
+				panic("sync: WaitGroup is reused before previous Wait has returned")
+			}
+			return
+		}
+	}
+}
+```
+- The first thing that stands out is the **noCopy** field. This isn't data; it's a clever trick. If you try to copy a WaitGroup after its first use, the Go vet tool will yell at you. Why? Because copying it would mean the counter and waiters wouldn't be shared correctly, leading to chaos. Think of it like trying to photocopy a shared to-do list – everyone ends up with different versions!
+```go
+wg := sync.WaitGroup{}
+
+wg.Add(1)
+
+wgCopy := wg   // ❌ Copy happens here
+
+go func() {
+    wgCopy.Done() // modifies copied version
+}()
+
+wg.Wait() // original still waiting forever
+```
+
+- The second thing is the state field, an atomic.Uint64. This is where the magic happens. Instead of using separate variables (and a mutex!) for the goroutine counter (how many Done() calls are still needed) and the waiter counter (how many goroutines are blocked on Wait()), it packs them both into one 64-bit integer. The high 32 bits track the main counter, and the low 32 bits track the waiters. This atomic variable allows multiple goroutines to update and read the state safely and efficiently without needing locks, in most cases. Pretty neat, huh?
+
+- Finally, the sema field is a semaphore used internally by the Go runtime. When a goroutine calls Wait() and the counter isn't zero, it essentially tells the runtime, "Okay, put me to sleep on this semaphore (runtime_SemacquireWaitGroup)." When the counter does hit zero (because the last Done() was called), the runtime is signaled to wake up all the goroutines sleeping on that semaphore (runtime_Semrelease). This sema field is key to understanding potential issues, as we'll see later.
+
+In a nutshell, the WaitGroup lifecycle is:
+
+- Call Add(n) before starting your goroutines to tell the WaitGroup how many Done() calls to expect. A common pattern is wg.Add(1) right before each go statement.
+- Inside each goroutine, call defer wg.Done() immediately to ensure the counter is decremented when the goroutine finishes, no matter what.
+- Call Wait() where you need to block until all n goroutines have called Done().
+Now let's talk about where things can go wrong.
+
+
+
+
+
+
