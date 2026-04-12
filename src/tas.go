@@ -7,7 +7,9 @@ import (
 	// "github.com/tastaslim/golang_tutorial/src/code/conditionals"
 	// loops "github.com/tastaslim/golang_tutorial/src/code/loops"
 	// shape "github.com/tastaslim/golang_tutorial/src/code/interfaces"
-	generic "github.com/tastaslim/golang_tutorial/src/code/generics"
+	// generic "github.com/tastaslim/golang_tutorial/src/code/generics"
+	goRoutine "github.com/tastaslim/golang_tutorial/src/code/goroutines"
+
 	// "github.com/tastaslim/golang_tutorial/src/code/maps"
 
 	// variable "github.com/tastaslim/golang_tutorial/src/code/variables"
@@ -111,8 +113,10 @@ func main() {
 	// fmt.Println(shape.MakeSound(cow))
 	// payment := shape.NetBanking{Name: "Net Banking"}
 	// payment.Pay(1000)
-	integerArrays := []int{1, 2, 3, 4, 5}
-	stringArrays := []string{"Diksha", "Rahul", "Sam"}
-	generic.AddElements(integerArrays)
-	generic.AddElements(stringArrays)
+	// integerArrays := []int{1, 2, 3, 4, 5}
+	// stringArrays := []string{"Diksha", "Rahul", "Sam"}
+	// generic.AddElements(integerArrays)
+	// generic.AddElements(stringArrays)
+	// goRoutine.DemoGoroutine()
+	goRoutine.WaitGroupDemoWithContext()
 }

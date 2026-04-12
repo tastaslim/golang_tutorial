@@ -237,7 +237,7 @@ func main(){
 ```
 ## Depth About WaitGroup
 
-The WaitGroup implementation, although just 129 lines of code, is actually quite interesting to look at. We can learn a lot about writing concurrent code in Go and about the runtime and the Go scheduler. Let's take a look at the WaitGroup struct:
+The WaitGroup implementation is actually quite interesting to look at. We can learn a lot about writing concurrent code in Go and about the runtime and the Go scheduler. Let's take a look at the WaitGroup struct:
 
 ```go
 // A WaitGroup waits for a collection of goroutines to finish.
@@ -259,164 +259,6 @@ type WaitGroup struct {
 
 // waitGroupBubbleFlag indicates that a WaitGroup is associated with a synctest bubble.
 const waitGroupBubbleFlag = 0x8000_0000
-
-// Add adds delta, which may be negative, to the [WaitGroup] task counter.
-// If the counter becomes zero, all goroutines blocked on [WaitGroup.Wait] are released.
-// If the counter goes negative, Add panics.
-//
-// Callers should prefer [WaitGroup.Go].
-//
-// Note that calls with a positive delta that occur when the counter is zero
-// must happen before a Wait. Calls with a negative delta, or calls with a
-// positive delta that start when the counter is greater than zero, may happen
-// at any time.
-// Typically this means the calls to Add should execute before the statement
-// creating the goroutine or other event to be waited for.
-// If a WaitGroup is reused to wait for several independent sets of events,
-// new Add calls must happen after all previous Wait calls have returned.
-// See the WaitGroup example.
-func (wg *WaitGroup) Add(delta int) {
-	if race.Enabled {
-		if delta < 0 {
-			// Synchronize decrements with Wait.
-			race.ReleaseMerge(unsafe.Pointer(wg))
-		}
-		race.Disable()
-		defer race.Enable()
-	}
-	bubbled := false
-	if synctest.IsInBubble() {
-		// If Add is called from within a bubble, then all Add calls must be made
-		// from the same bubble.
-		switch synctest.Associate(wg) {
-		case synctest.Unbubbled:
-		case synctest.OtherBubble:
-			// wg is already associated with a different bubble.
-			fatal("sync: WaitGroup.Add called from multiple synctest bubbles")
-		case synctest.CurrentBubble:
-			bubbled = true
-			state := wg.state.Or(waitGroupBubbleFlag)
-			if state != 0 && state&waitGroupBubbleFlag == 0 {
-				// Add has been called from outside this bubble.
-				fatal("sync: WaitGroup.Add called from inside and outside synctest bubble")
-			}
-		}
-	}
-	state := wg.state.Add(uint64(delta) << 32)
-	if state&waitGroupBubbleFlag != 0 && !bubbled {
-		// Add has been called from within a synctest bubble (and we aren't in one).
-		fatal("sync: WaitGroup.Add called from inside and outside synctest bubble")
-	}
-	v := int32(state >> 32)
-	w := uint32(state & 0x7fffffff)
-	if race.Enabled && delta > 0 && v == int32(delta) {
-		// The first increment must be synchronized with Wait.
-		// Need to model this as a read, because there can be
-		// several concurrent wg.counter transitions from 0.
-		race.Read(unsafe.Pointer(&wg.sema))
-	}
-	if v < 0 {
-		panic("sync: negative WaitGroup counter")
-	}
-	if w != 0 && delta > 0 && v == int32(delta) {
-		panic("sync: WaitGroup misuse: Add called concurrently with Wait")
-	}
-	if v > 0 || w == 0 {
-		return
-	}
-	// This goroutine has set counter to 0 when waiters > 0.
-	// Now there can't be concurrent mutations of state:
-	// - Adds must not happen concurrently with Wait,
-	// - Wait does not increment waiters if it sees counter == 0.
-	// Still do a cheap sanity check to detect WaitGroup misuse.
-	if wg.state.Load() != state {
-		panic("sync: WaitGroup misuse: Add called concurrently with Wait")
-	}
-	// Reset waiters count to 0.
-	wg.state.Store(0)
-	if bubbled {
-		// Adds must not happen concurrently with wait when counter is 0,
-		// so we can safely disassociate wg from its current bubble.
-		synctest.Disassociate(wg)
-	}
-	for ; w != 0; w-- {
-		runtime_Semrelease(&wg.sema, false, 0)
-	}
-}
-
-// Done decrements the [WaitGroup] task counter by one.
-// It is equivalent to Add(-1).
-//
-// Callers should prefer [WaitGroup.Go].
-//
-// In the terminology of [the Go memory model], a call to Done
-// "synchronizes before" the return of any Wait call that it unblocks.
-//
-// [the Go memory model]: https://go.dev/ref/mem
-func (wg *WaitGroup) Done() {
-	wg.Add(-1)
-}
-
-// Wait blocks until the [WaitGroup] task counter is zero.
-func (wg *WaitGroup) Wait() {
-	if race.Enabled {
-		race.Disable()
-	}
-	for {
-		state := wg.state.Load()
-		v := int32(state >> 32)
-		w := uint32(state & 0x7fffffff)
-		if v == 0 {
-			// Counter is 0, no need to wait.
-			if race.Enabled {
-				race.Enable()
-				race.Acquire(unsafe.Pointer(wg))
-			}
-			if w == 0 && state&waitGroupBubbleFlag != 0 && synctest.IsAssociated(wg) {
-				// Adds must not happen concurrently with wait when counter is 0,
-				// so we can disassociate wg from its current bubble.
-				if wg.state.CompareAndSwap(state, 0) {
-					synctest.Disassociate(wg)
-				}
-			}
-			return
-		}
-		// Increment waiters count.
-		if wg.state.CompareAndSwap(state, state+1) {
-			if race.Enabled && w == 0 {
-				// Wait must be synchronized with the first Add.
-				// Need to model this is as a write to race with the read in Add.
-				// As a consequence, can do the write only for the first waiter,
-				// otherwise concurrent Waits will race with each other.
-				race.Write(unsafe.Pointer(&wg.sema))
-			}
-			synctestDurable := false
-			if state&waitGroupBubbleFlag != 0 && synctest.IsInBubble() {
-				if race.Enabled {
-					race.Enable()
-				}
-				if synctest.IsAssociated(wg) {
-					// Add was called within the current bubble,
-					// so this Wait is durably blocking.
-					synctestDurable = true
-				}
-				if race.Enabled {
-					race.Disable()
-				}
-			}
-			runtime_SemacquireWaitGroup(&wg.sema, synctestDurable)
-			isReset := wg.state.Load() != 0
-			if race.Enabled {
-				race.Enable()
-				race.Acquire(unsafe.Pointer(wg))
-			}
-			if isReset {
-				panic("sync: WaitGroup is reused before previous Wait has returned")
-			}
-			return
-		}
-	}
-}
 ```
 - The first thing that stands out is the **noCopy** field. This isn't data; it's a clever trick. If you try to copy a WaitGroup after its first use, the Go vet tool will yell at you. Why? Because copying it would mean the counter and waiters wouldn't be shared correctly, leading to chaos. Think of it like trying to photocopy a shared to-do list – everyone ends up with different versions!
 ```go
@@ -434,6 +276,17 @@ wg.Wait() // original still waiting forever
 ```
 
 - The second thing is the state field, an atomic.Uint64. This is where the magic happens. Instead of using separate variables (and a mutex!) for the goroutine counter (how many Done() calls are still needed) and the waiter counter (how many goroutines are blocked on Wait()), it packs them both into one 64-bit integer. The high 32 bits track the main counter, and the low 32 bits track the waiters. This atomic variable allows multiple goroutines to update and read the state safely and efficiently without needing locks, in most cases. Pretty neat, huh?
+- ![alt text](image.png)
+### Here's what's happening in concrete terms:
+- **The packing trick.** A single uint64 holds two independent 32-bit counters. To read the goroutine counter, Go does state >> 32 (shift right 32 bits). To read the waiter counter, it does state & 0xFFFFFFFF (mask the low half). To increment the goroutine counter (e.g. Add(1)), it atomically adds 1 << 32 to the whole integer — which bumps only the high half without touching the low half at all.
+- **Why this beats a mutex.** A sync.Mutex with separate counter int and waiters int fields needs a lock on every read and write because two goroutines updating both fields simultaneously would race. With the packed integer, a single atomic.Add is one CPU instruction — no lock, no contention, no cache line ping-pong (usually).
+- **The three operations in terms of bit manipulation:**
+  1. Add(n) — does atomic.Add(&state, uint64(n) << 32), touching only the high half
+  2. Done() — same as Add(-1), i.e. atomic.Add(&state, ^uint32(0) << 32) (subtracts 1 from high half); then checks if counter hit 0 and waiter > 0, in which case it wakes all blocked goroutines and zeroes the low half
+  3. Wait() — atomically increments the low 32 bits by 1 and parks the goroutine via a semaphore; when Done() signals, the runtime decrements the waiter count and unblocks the goroutine
+
+**The tricky moment** is when Done() and Wait() race right at the boundary where counter → 0. The packed integer lets Go do one atomic compare-and-swap that simultaneously checks "is counter now 0 AND are there waiters?" and handles the wake-up — all without holding a lock for any of it.
+Try the **"Wait blocks + release"** scenario in the widget to see how the waiter bits light up and then clear all at once when the last Done() fires.
 
 - Finally, the sema field is a semaphore used internally by the Go runtime. When a goroutine calls Wait() and the counter isn't zero, it essentially tells the runtime, "Okay, put me to sleep on this semaphore (runtime_SemacquireWaitGroup)." When the counter does hit zero (because the last Done() was called), the runtime is signaled to wake up all the goroutines sleeping on that semaphore (runtime_Semrelease). This sema field is key to understanding potential issues, as we'll see later.
 
@@ -444,8 +297,341 @@ In a nutshell, the WaitGroup lifecycle is:
 - Call Wait() where you need to block until all n goroutines have called Done().
 Now let's talk about where things can go wrong.
 
+## Pitfalls of using sync.WaitGroup
 
+- It is easy to create a goroutine in golang but we must always ensure and think that how our goroutines end. This is especially critical when using **WaitGroup**. Otherwise, you might get into deadlock.
+```go
+package main
 
+import (
+	"fmt"
+	"net/http"
+	"sync"
+)
 
+func main() {
+	wg := &sync.WaitGroup
+	// Intend to wait for one goroutine
+	wg.Add(1)
+	go func() {
+		// PROBLEM: Defer is missing!
+		req, err := http.NewRequest("GET", "https://api.example.com/data", nil)
+		if err != nil {
+			fmt.Println("Error creating request:", err)
+			// We return early, wg.Done() is never called!
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("Error sending request:", err)
+			// We return early again, wg.Done() is never called!
+			return
+		}
+		defer resp.Body.Close()
+		// Only call Done() on the happy path
+		wg.Done() // <<< If errors happen, this line is skipped!
+	}()
+	wg.Wait() // <<< This will wait FOREVER if an error occurs above.
+}
+```
+- In case of an error during request creation or sending, the Done() method is skipped. The WaitGroup counter never reaches zero, and our main goroutine calling wg.Wait() blocks indefinitely. Classic deadlock!
+- That is why, it is vry critical to use defer **wg.Done()** at the very beginning of the goroutine.
+```go
+func main(){
+	wg := &sync.WaitGroup
+	// Intend to wait for one goroutine
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		req, err := http.NewRequest("GET", "https://api.example.com/data", nil)
+		if err != nil {
+			fmt.Println("Error creating request:", err)
+			return // Done() will still run thanks to defer
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("Error sending request:", err)
+			return // Done() will still run thanks to defer
+		}
+		defer resp.Body.Close()
+		// No need for wg.Done() here anymore
+		fmt.Println("Request successful (in theory)!")
+	}()
+	wg.Wait()
+	fmt.Println("Main goroutine finished waiting.")
+}
+```
+Okay, deadlock avoided. But wait, there's more! What about timeouts and cancellation?
+## Improper context cancellation when using WaitGroup
+- Our HTTP request example still has a subtle but dangerous problem: we're not passing a **context.Context**. The **http.DefaultClient** might hang forever waiting for a response if the network is slow or the server is unresponsive. If the HTTP call blocks, **wg.Done()** never runs, and **wg.Wait()** blocks forever. Back to deadlock city🥲!
+- The WaitGroup itself doesn't support cancellation. wg.Wait() is fundamentally a blocking call until the counter reaches zero. The real fix is to make sure the work being done inside the goroutines can be cancelled.
+- Let's bring **context.Context** to the rescue:
 
+```go
+package main
 
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"sync"
+	"time"
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Creates a context that will automatically cancel itself after 5 seconds. cancel is a function you must call to free resources. context.Background() is just the root empty context — think of it as the starting point.
+	defer cancel() // Guarantees cancel() is called when main exits, no matter what. Even if everything finishes in 1 second, the context still holds some resources internally — cancel() frees them.
+
+	var wg sync.WaitGroup // Declares the WaitGroup. Counter starts at 0.
+
+	wg.Go(func() { // Internally calls wg.Add(1), then launches the function in a new goroutine. Will call wg.Done() automatically when the function returns.
+		req, err := http.NewRequestWithContext(ctx, "GET", "http://httpbin.org/delay/10", nil) // Creates an HTTP GET request attached to the context. This is the critical line — we are passing ctx here, the request knows to abort if the context is cancelled.
+		if err != nil {
+			fmt.Println("Error creating request:", err)
+			return
+		}
+		_, requestError := http.DefaultClient.Do(req) // Actually sends the request. This blocks the goroutine until one of three things happens: 
+		// 1. Response arrives 2. Network error occurs 3. Context times out → request is cancelled ← what happens here after 5 seconds
+
+		if requestError != nil { // After 5 seconds the context fires, Do() returns a context deadline exceeded error, goroutine hits return and exits cleanly. wg.Go() then calls wg.Done() internally.
+			fmt.Println("Request cancelled:", err)
+			return
+		}
+		fmt.Println("Request finished.") // Only reached if the response arrived within 5 seconds. Since httpbin.org/delay/10 waits 10 seconds, This line never runs.
+	})
+
+	wg.Wait()
+	fmt.Println("Done.")
+}
+```
+We now pass a context with a timeout to **http.NewRequestWithContext**, and the **http.Client** respects this context. If the request takes longer than the context's deadline, **Do** will return an error (usually **context.DeadlineExceeded**). Crucially, the goroutine unblocks and proceeds to its end, executing the deferred **wg.Done()**.
+To be extra sure you're not leaking goroutines in your tests, you can use packages like [goleak](https://github.com/uber-go/goleak) by Uber. Highly recommended!
+
+- So far, we've focused on just waiting for tasks to finish. We haven't really considered what happens if one of those tasks fails or if we want to collect errors. **WaitGroup** isn't concerned with errors..This is fine if partial success is okay. Maybe you're firing off notifications and it's not critical if one fails. But when we need to handle errors and take decisions based on output of goroutines, we use **errgroup.Group**
+- It's designed specifically for running a group of tasks where you care about errors and want coordinated cancellation. It lives in the **golang.org/x/sync/errgroup** package.
+- This behavior is exactly what we often need for scenarios like API gateways or data fetching: fail fast, clean up, and report the first problem.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"time"
+	"golang.org/x/sync/errgroup"
+)
+
+func main() {
+	// errgroup.WithContext gives you both a group and a context.
+	// If any goroutine returns an error, the context is cancelled automatically —
+	// signalling all other goroutines to stop.
+	g, ctx := errgroup.WithContext(context.Background())
+	// Wrap the context with a timeout so the request doesn't block forever.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	g.Go(func() error {
+		req, err := http.NewRequestWithContext(ctx, "GET", "http://httpbin.org/delay/10", nil)
+		if err != nil {
+			return fmt.Errorf("creating request: %w", err) // returned to g.Wait()
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("sending request: %w", err) // returned to g.Wait()
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("unexpected status: %s", resp.Status) // decision based on output
+		}
+
+		fmt.Println("Request finished:", resp.Status)
+		return nil
+	})
+
+	// g.Wait() blocks until all goroutines complete.
+	// Unlike wg.Wait(), it also returns the first non-nil error from any goroutine.
+	if err := g.Wait(); err != nil {
+		fmt.Println("Failed:", err) // context deadline exceeded after 5s
+		return
+	}
+
+	fmt.Println("Done.")
+}
+```
+
+## The WaitGroup & errgroup Cheat Sheet (For the Impatient Gopher)
+
+1. **Use sync.WaitGroup when:**
+	- You just need to wait for several independent goroutines to finish.
+	- You don't care too much if some of them error (or they handle errors internally).
+	- Partial success is acceptable.
+	- Remember: Call wg.Add(1) before go, defer wg.Done() inside, and ensure goroutines handle context.Context if they do blocking I/O to prevent leaks when using wg.Wait().
+2. **Use golang.org/x/sync/errgroup when:**
+	- You need to run several goroutines and get the first error that occurs.
+	- You want other goroutines to be cancelled automatically if one fails.
+	- Your goroutines perform work that should respect cancellation (e.g., network calls, long computations).
+	- Remember: Use eg, ctx := errgroup.WithContext(...), launch with eg.Go(func() error { ... }), pass ctx into your work functions and check ctx.Done(), and check the err returned by eg.Wait().
+3. **General Go Concurrency Wisdom:**
+	- Always think about the entire lifecycle of your goroutines (how do they start, how do they stop?).
+	- Use context.Context religiously for cancellation and deadlines in any blocking or long-running operation.
+	- defer wg.Done() is your friend for WaitGroup.
+	- Test for goroutine leaks using tools like goleak.
+
+---
+
+From go version 1.25, the use of **WaitGroup** has become more ergonomic and less error-prone.
+
+```go
+var wg sync.WaitGroup
+wg.Go(func() {
+    // perform task
+})
+wg.Wait()
+```
+The benefits of this proposal are:
+- Simplified Syntax: Reduces the need for separate Add and go statements.
+- Reduced Errors: Minimizes the risk of forgetting to call Done or calling Add after the goroutine has started.
+- Improved Readability: Makes the code more concise and easier to understand.
+
+---
+
+When you make an HTTP request, Go does not automatically read and discard the response body. It keeps the underlying TCP connection open, waiting for you to read it. If you never close it:
+- TCP connection is never returned to the connection pool
+- That connection just sits there, occupied
+- Do this 100 times → 100 leaked connections
+- Eventually you hit the connection limit → new requests start failing
+```go
+	resp, err := http.DefaultClient.Do(req)
+	defer resp.Body.Close() // ✅
+	// 1. When this function returns (for ANY reason — success, error, panic)
+	// 2. Body is closed
+	// 3. TCP connection is returned to the pool
+	// 4. Next request can reuse that connection → faster + no leaks
+```
+The **defer** is important here specifically because it guarantees the body is closed no matter how the function exits — whether it returns normally, hits an error halfway through, or even panics.
+In a server handling thousands of requests, not closing the body is the kind of bug that doesn't crash immediately — it slowly leaks connections until the service becomes unresponsive under load. That's the worst kind of bug to debug in production.
+
+---
+
+## Handling Partial Result
+- Don't use the **errgroup** where you are fine with partial results and need to collect error of all failed API calls(go routines). **sync.WaitGroup** is the right tool for this.
+  
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"sync"
+	"time"
+)
+
+type Result struct {
+	API_URL  string
+	Records []string // successfully created records
+}
+
+type FailedAPI struct {
+	API_URL string
+	Err    error
+}
+
+type Response struct {
+	Successful []Result
+	Failed     []FailedAPI
+}
+
+func callAPI(ctx context.Context, apiURL string) (Result, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	if err != nil {
+		return Result{}, fmt.Errorf("creating request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return Result{}, fmt.Errorf("sending request: %w", err)
+	}
+	defer resp.Body.Close() // 1. When this function returns (for ANY reason — success, error, panic) 2. Body is closed 3. TCP connection is returned to the pool 4. Next request can reuse that connection → faster + no leaks
+
+	if resp.StatusCode != http.StatusOK {
+		return Result{}, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	// Simulate 5 records created by this API
+	records := []string{
+		apiURL + "/record-1",
+		apiURL + "/record-2",
+		apiURL + "/record-3",
+		apiURL + "/record-4",
+		apiURL + "/record-5",
+	}
+
+	return Result{API_URL: apiURL, Records: records}, nil
+}
+
+func callAllAPIs(apis []string) []Result {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	results := make([]Result, len(apis)) // each goroutine owns its index
+
+	for i, api := range apis {
+		i, api := i, api
+		wg.Go(func() {
+			result, err := callAPI(ctx, api)
+			if err != nil {
+				results[i] = Result{API_URL: api, Err: err}
+				return
+			}
+			results[i] = result
+		})
+	}
+
+	wg.Wait()
+	return results
+}
+
+func main() {
+	apis := []string{
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/status/500", // fails — internal server error
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/delay/20",   // fails — timeout
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/status/404", // fails — not found
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/status/200", // succeeds
+		"http://httpbin.org/status/200", // succeeds
+	}
+
+	response := callAllAPIs(apis)
+
+	// make decisions on array
+	var successful, failed []Result
+	for _, result := range results {
+		if result.Err != nil {
+			failed = append(failed, result)
+		} else {
+			successful = append(successful, result)
+		}
+	}
+
+	fmt.Printf("Successful: %d/10\n", len(successful))
+	fmt.Printf("Failed:     %d/10\n\n", len(failed))
+
+	fmt.Println("=== Failed ===")
+	for _, r := range failed {
+		fmt.Printf("  URL: %s\n  Error: %s\n\n", r.APIURL, r.Err)
+	}
+
+	fmt.Println("=== Successful Records ===")
+	for _, r := range successful {
+		fmt.Printf("  URL: %s\n  Records: %v\n\n", r.APIURL, r.Records)
+	}
+}
+```

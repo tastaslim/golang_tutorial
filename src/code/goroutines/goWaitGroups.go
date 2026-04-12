@@ -10,7 +10,7 @@ func PrintFibonacci(numberToPrint int, waitGroup *sync.WaitGroup) {
 	fmt.Println(numberToPrint)
 }
 
-func main() {
+func TestWaitGroups() {
 	var waitGroup sync.WaitGroup
 	num := 1
 	for number := range num {
