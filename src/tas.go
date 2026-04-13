@@ -8,7 +8,8 @@ import (
 	// loops "github.com/tastaslim/golang_tutorial/src/code/loops"
 	// shape "github.com/tastaslim/golang_tutorial/src/code/interfaces"
 	// generic "github.com/tastaslim/golang_tutorial/src/code/generics"
-	goRoutine "github.com/tastaslim/golang_tutorial/src/code/goroutines"
+
+	// goRoutine "github.com/tastaslim/golang_tutorial/src/code/goroutines"
 
 	// "github.com/tastaslim/golang_tutorial/src/code/maps"
 
@@ -118,5 +119,5 @@ func main() {
 	// generic.AddElements(integerArrays)
 	// generic.AddElements(stringArrays)
 	// goRoutine.DemoGoroutine()
-	goRoutine.WaitGroupDemoWithContext()
+	// goRoutine.WaitGroupDemoWithContext()
 }
